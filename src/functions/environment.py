@@ -30,6 +30,7 @@ def setup_logger() -> logging.Logger:
         logger.addHandler(log_file_handler)
 
         sh = logging.StreamHandler()
+        sh.setLevel(logging.WARNING)
         sh.setFormatter(fmt)
         logger.addHandler(sh)
     return logger

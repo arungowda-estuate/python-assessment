@@ -1,8 +1,9 @@
+import json
 from datetime import datetime
 from typing import Dict, List
 
-from src.functions.environment import setup_logger
-from src.functions.helper import load_notes, save_notes
+from src.functions.environment import setup_logger, NOTES_FILE
+from src.functions.helper import save_notes
 
 logger = setup_logger()
 
@@ -56,7 +57,38 @@ def delete_note(note_id: int) -> None:
     logger.info("DELETE - note_id=%s", note_id)
 
 
+# All notes
 def list_notes() -> List[Dict]:
     notes = load_notes()
     logger.info("LIST - total=%s", len(notes))
     return notes
+
+
+# Loading all notes from the json file
+def load_notes() -> List[Dict]:
+    try:
+        with NOTES_FILE.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError("notes.json root is not a list")
+            return data
+    except FileNotFoundError:
+        logger.warning("notes.json not found; creating a new empty list.")
+        NOTES_FILE.write_text("[]", encoding="utf-8")
+        return []
+    # Additional Handler
+    except json.JSONDecodeError:
+        logger.exception("Failed to parse notes.json — backing it up and resetting.")
+        # Backup corrupt file and start fresh
+        ts = datetime.now().strftime("%Y%m%d%H%M%S")
+        backup = NOTES_FILE.with_name(f"{NOTES_FILE.name}.corrupt.{ts}")
+        try:
+            NOTES_FILE.rename(backup)
+            logger.info(f"Backed up corrupt notes.json to {backup}")
+        except Exception:
+            logger.exception("Failed to backup corrupt notes.json.")
+        NOTES_FILE.write_text("[]", encoding="utf-8")
+        return []
+    except Exception:
+        logger.exception("Unexpected error reading notes.json")
+        return []

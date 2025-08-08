@@ -19,8 +19,8 @@ def _get_int(prompt: str) -> Optional[int]:
 
 
 def menu():
-    menu = """
-=== Personal Notes Manager ===
+    print("\n=== Personal Notes Manager ===")
+    options = """
 1. Create Note
 2. Read Note
 3. Update Note
@@ -30,7 +30,7 @@ def menu():
 """
 
     while True:
-        print(menu)
+        print(options)
         choice = input("Enter your choice (1-6): ").strip()
         if choice == "1":
             title = input("Enter title: ").strip()
